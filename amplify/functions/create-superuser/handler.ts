@@ -4,29 +4,24 @@ import {
   AdminSetUserPasswordCommand,
   AdminAddUserToGroupCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
-import type { APIGatewayProxyHandler } from "aws-lambda";
 
 const cognitoClient = new CognitoIdentityProviderClient({
   region: process.env.AWS_REGION,
 });
 
-export const handler: APIGatewayProxyHandler = async (event) => {
+interface CreateSuperuserEvent {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export const handler = async (event: CreateSuperuserEvent) => {
   try {
-    // Parse request body
-    const body = event.body ? JSON.parse(event.body) : {};
-    const { email, password, firstName, lastName } = body;
+    const { email, password, firstName, lastName } = event;
 
     if (!email || !password) {
-      return {
-        statusCode: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({
-          error: "Email and password are required",
-        }),
-      };
+      throw new Error("Email and password are required");
     }
 
     const userPoolId = process.env.AMPLIFY_AUTH_USERPOOL_ID;
@@ -76,30 +71,12 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     console.log(`Added ${email} to group: super_admins`);
 
     return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({
-        message: "Superuser created successfully",
-        email: email,
-        groups: ["super_admins"],
-      }),
+      message: "Superuser created successfully",
+      email: email,
+      groups: ["super_admins"],
     };
   } catch (error) {
     console.error("Error creating superuser:", error);
-
-    return {
-      statusCode: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({
-        error: "Failed to create superuser",
-        message: error instanceof Error ? error.message : "Unknown error",
-      }),
-    };
+    throw error;
   }
 };
