@@ -5,6 +5,7 @@ import AmplifyProvider from "./components/AmplifyProvider";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from "./components/AuthProvider";
 import ConditionalLayout from "./components/ConditionalLayout";
+import ToastProvider from "./components/ToastProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default function RootLayout({
           <AuthProvider>
             <ThemeProvider>
               <ConditionalLayout>{children}</ConditionalLayout>
+              <ToastProvider />
             </ThemeProvider>
           </AuthProvider>
         </AmplifyProvider>
