@@ -3,6 +3,16 @@
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Check,
+} from "lucide-react";
 
 const client = generateClient<Schema>();
 
@@ -120,18 +130,46 @@ export default function CrudTable({
 
     switch (field.type) {
       case "boolean":
-        return value ? "✅" : "❌";
+        return value ? (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400">
+            <Check className="w-3 h-3 mr-1" />
+            Yes
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400">
+            <X className="w-3 h-3 mr-1" />
+            No
+          </span>
+        );
       case "datetime":
-        return value ? new Date(value).toLocaleDateString() : "-";
+        return value ? (
+          <span className="text-gray-900 dark:text-white">
+            {new Date(value).toLocaleDateString()}
+          </span>
+        ) : (
+          <span className="text-gray-400">-</span>
+        );
       case "enum":
-        return value || "-";
+        return value ? (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+            {value}
+          </span>
+        ) : (
+          <span className="text-gray-400">-</span>
+        );
       default:
-        return value || "-";
+        return (
+          <span className="text-gray-900 dark:text-white">
+            {value || <span className="text-gray-400">-</span>}
+          </span>
+        );
     }
   };
 
   const renderFormField = (field: Field) => {
     const value = formData[field.key] || "";
+    const baseInputClasses =
+      "block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent px-3 py-2";
 
     switch (field.type) {
       case "boolean":
@@ -142,7 +180,7 @@ export default function CrudTable({
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.checked })
             }
-            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+            className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-2"
           />
         );
 
@@ -154,7 +192,7 @@ export default function CrudTable({
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+            className={baseInputClasses}
             required={field.required}
           >
             <option value="">Select...</option>
@@ -177,7 +215,7 @@ export default function CrudTable({
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+            className={baseInputClasses}
             required={field.required}
           />
         );
@@ -190,7 +228,7 @@ export default function CrudTable({
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+            className={baseInputClasses}
             required={field.required}
           />
         );
@@ -203,7 +241,7 @@ export default function CrudTable({
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.value })
             }
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+            className={baseInputClasses}
             required={field.required}
           />
         );
@@ -219,104 +257,124 @@ export default function CrudTable({
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {title}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Manage your {title.toLowerCase()}
+          </p>
+        </div>
         <button
           onClick={handleCreate}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+          className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
         >
-          Create New
+          <Plus className="w-4 h-4" />
+          <span>Create New</span>
         </button>
       </div>
 
       {/* Search */}
       {searchFields.length > 0 && (
-        <div className="mb-4">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
             placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
       )}
 
       {/* Table */}
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              {fields.map((field) => (
-                <th
-                  key={field.key}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  {field.label}
-                </th>
-              ))}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedData.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900">
+              <tr>
                 {fields.map((field) => (
-                  <td
+                  <th
                     key={field.key}
-                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {renderField(field, item[field.key], item)}
-                  </td>
+                    {field.label}
+                  </th>
                 ))}
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="text-blue-600 hover:text-blue-900 mr-3"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
-                </td>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {paginatedData.map((item) => (
+                <tr
+                  key={item.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {fields.map((field) => (
+                    <td
+                      key={field.key}
+                      className="px-6 py-4 whitespace-nowrap text-sm"
+                    >
+                      {renderField(field, item[field.key], item)}
+                    </td>
+                  ))}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="inline-flex items-center space-x-1 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-between items-center mt-4">
-          <div className="text-sm text-gray-700">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="text-sm text-gray-700 dark:text-gray-300">
             Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
             {Math.min(currentPage * itemsPerPage, filteredData.length)} of{" "}
             {filteredData.length} results
           </div>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              className="inline-flex items-center space-x-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              Previous
+              <ChevronLeft className="w-4 h-4" />
+              <span>Previous</span>
             </button>
             <button
               onClick={() =>
                 setCurrentPage(Math.min(totalPages, currentPage + 1))
               }
               disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              className="inline-flex items-center space-x-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              Next
+              <span>Next</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -324,12 +382,21 @@ export default function CrudTable({
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                {editingItem ? "Edit" : "Create"} {title.slice(0, -1)}
-              </h3>
+        <div className="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {editingItem ? "Edit" : "Create"} {title.slice(0, -1)}
+                </h3>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
                   {fields
@@ -341,7 +408,7 @@ export default function CrudTable({
                     )
                     .map((field) => (
                       <div key={field.key}>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           {field.label}{" "}
                           {field.required && (
                             <span className="text-red-500">*</span>
@@ -351,17 +418,18 @@ export default function CrudTable({
                       </div>
                     ))}
                 </div>
-                <div className="flex justify-end space-x-3 mt-6">
+
+                <div className="flex justify-end space-x-3 mt-8">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                   >
                     {editingItem ? "Update" : "Create"}
                   </button>

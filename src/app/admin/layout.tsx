@@ -5,6 +5,19 @@ import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Folder,
+  Tag,
+  Settings,
+  CheckSquare,
+  Menu,
+  X,
+  Home,
+  LogOut,
+} from "lucide-react";
 
 const client = generateClient<Schema>();
 
@@ -26,74 +39,95 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, []);
 
   const menuItems = [
-    { name: "Dashboard", href: "/admin", icon: "📊" },
-    { name: "Users", href: "/admin/users", icon: "👥" },
-    { name: "Posts", href: "/admin/posts", icon: "📝" },
-    { name: "Categories", href: "/admin/categories", icon: "📁" },
-    { name: "Tags", href: "/admin/tags", icon: "🏷️" },
-    { name: "Settings", href: "/admin/settings", icon: "⚙️" },
-    { name: "Todos", href: "/admin/todos", icon: "✅" },
+    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Users", href: "/admin/users", icon: Users },
+    { name: "Posts", href: "/admin/posts", icon: FileText },
+    { name: "Categories", href: "/admin/categories", icon: Folder },
+    { name: "Tags", href: "/admin/tags", icon: Tag },
+    { name: "Settings", href: "/admin/settings", icon: Settings },
+    { name: "Todos", href: "/admin/todos", icon: CheckSquare },
   ];
 
   if (!isAuthenticated || userRole !== "SUPER_ADMIN") {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">
-            Access Denied
-          </h1>
-          <p className="text-gray-600">
-            You need super admin privileges to access this area.
-          </p>
-          <Link
-            href="/"
-            className="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Go Home
-          </Link>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 max-w-md w-full mx-4">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <LogOut className="w-8 h-8 text-red-500" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Access Denied
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              You need super admin privileges to access this area.
+            </p>
+            <Link
+              href="/"
+              className="inline-flex items-center space-x-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              <Home className="w-4 h-4" />
+              <span>Go Home</span>
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out lg:translate-x-0`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out lg:translate-x-0`}
       >
-        <div className="flex items-center justify-between h-16 px-4 bg-gray-800">
-          <h1 className="text-white text-xl font-bold">Hendrix Admin</h1>
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">H</span>
+            </div>
+            <h1 className="text-gray-900 dark:text-white text-lg font-semibold">
+              Admin
+            </h1>
+          </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden text-white hover:text-gray-300"
+            className="lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <nav className="mt-8">
-          {menuItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors ${
-                pathname === item.href
-                  ? "bg-gray-700 text-white border-r-4 border-blue-500"
-                  : ""
-              }`}
-            >
-              <span className="mr-3 text-lg">{item.icon}</span>
-              {item.name}
-            </Link>
-          ))}
+        <nav className="mt-6 px-3">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center px-3 py-2.5 mb-1 text-sm font-medium rounded-lg transition-colors ${
+                  isActive
+                    ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                }`}
+              >
+                <Icon className="w-5 h-5 mr-3" />
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-700">
-          <div className="text-gray-400 text-sm">
-            <p>Logged in as Super Admin</p>
-            <Link href="/" className="text-blue-400 hover:text-blue-300">
-              ← Back to Site
+        <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="text-gray-500 dark:text-gray-400 text-sm">
+            <p className="font-medium mb-2">Super Admin</p>
+            <Link
+              href="/"
+              className="inline-flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              <Home className="w-4 h-4" />
+              <span>Back to Site</span>
             </Link>
           </div>
         </div>
@@ -104,16 +138,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         className={`${sidebarOpen ? "lg:ml-64" : ""} transition-all duration-300`}
       >
         {/* Top bar */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="flex items-center justify-between h-16 px-4">
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between h-16 px-6">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
+              className="lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             >
-              ☰
+              <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">Super Admin Panel</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                Administration Panel
+              </span>
             </div>
           </div>
         </div>
