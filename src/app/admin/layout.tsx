@@ -9,7 +9,6 @@ import {
   FileText,
   Folder,
   Tag,
-  Settings,
   CheckSquare,
   Menu,
   X,
@@ -129,8 +128,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       description: "Todo items",
     },
   ];
-
-  const bottomMenuItems = [];
 
   // Loading state
   if (loading) {
