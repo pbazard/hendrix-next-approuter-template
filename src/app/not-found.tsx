@@ -1,4 +1,5 @@
 import { Home, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -16,15 +17,15 @@ export default function NotFound() {
           Page Not Found
         </h2>
         <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-          The page you're looking for doesn't exist or has been moved.
+          The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
-        <a
+        <Link
           href="/"
           className="inline-flex items-center space-x-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-lg mt-4"
         >
           <Home className="w-4 h-4" />
           <span>Go Home</span>
-        </a>
+        </Link>
       </div>
     </div>
   );

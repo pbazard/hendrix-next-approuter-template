@@ -15,7 +15,6 @@ import {
   UserPlus,
   FolderPlus,
   Database,
-  Clock,
   Activity,
   TrendingUp,
 } from "lucide-react";
@@ -215,7 +214,7 @@ export default function AdminDashboard() {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Welcome back, Admin. Here's a snapshot of your application.
+          Welcome back, Admin. Here&apos;s a snapshot of your application.
         </p>
       </div>
 

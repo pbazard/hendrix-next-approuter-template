@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
 import toast from "react-hot-toast";
@@ -42,17 +42,15 @@ export default function CrudTable({
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [deletingItem, setDeletingItem] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    loadData();
-  }, [modelName]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const model = (client.models as any)[modelName];
@@ -83,7 +81,11 @@ export default function CrudTable({
     } finally {
       setLoading(false);
     }
-  };
+  }, [modelName]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreate = () => {
     setEditingItem(null);
@@ -97,10 +99,16 @@ export default function CrudTable({
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
+  const handleDeleteClick = (item: any) => {
+    setDeletingItem(item);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingItem) return;
 
     const loadingToast = toast.loading(`Deleting ${modelName}...`);
+    setShowDeleteModal(false);
 
     try {
       const model = (client.models as any)[modelName];
@@ -109,8 +117,8 @@ export default function CrudTable({
         throw new Error(`Model ${modelName} not found`);
       }
 
-      console.log(`[CRUD] Deleting ${modelName}:`, { id });
-      const result = await model.delete({ id });
+      console.log(`[CRUD] Deleting ${modelName}:`, { id: deletingItem.id });
+      const result = await model.delete({ id: deletingItem.id });
       console.log(`[CRUD] Delete result:`, result);
 
       if (
@@ -130,7 +138,14 @@ export default function CrudTable({
     } catch (error) {
       console.error(`[CRUD] Error deleting ${modelName}:`, error);
       toast.error(`Failed to delete ${modelName}`, { id: loadingToast });
+    } finally {
+      setDeletingItem(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setDeletingItem(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -411,7 +426,7 @@ export default function CrudTable({
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDeleteClick(item)}
                         className="px-3 py-2 text-sm font-medium text-destructive bg-background hover:bg-muted rounded-r-lg border-t border-b border-r border-border"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -514,6 +529,63 @@ export default function CrudTable({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 pt-24">
+          <div className="bg-card w-full max-w-md p-6 rounded-lg shadow-xl border border-border mt-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-foreground">
+                Confirm Delete
+              </h2>
+              <button
+                onClick={handleDeleteCancel}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <p className="text-foreground">
+                Are you sure you want to delete this {modelName.toLowerCase()}?
+              </p>
+              {deletingItem && (
+                <div className="bg-muted p-3 rounded-md">
+                  <p className="text-sm text-muted-foreground">
+                    This action cannot be undone.
+                  </p>
+                  {/* Show some identifying information about the item */}
+                  {fields.slice(0, 2).map((field) => (
+                    <div key={field.key} className="mt-2">
+                      <span className="text-sm font-medium text-foreground">
+                        {field.label}:{" "}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {deletingItem[field.key] || "-"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex justify-end space-x-3 pt-4 border-t border-border">
+                <button
+                  type="button"
+                  onClick={handleDeleteCancel}
+                  className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 font-medium text-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
