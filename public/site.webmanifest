@@ -1,0 +1,16 @@
+{
+  "name": "Hendrix - Modern Web Application",
+  "short_name": "Hendrix",
+  "description": "A modern web application built with Next.js, Tailwind CSS, and AWS Amplify",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#8b5cf6",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}
