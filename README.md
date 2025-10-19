@@ -152,17 +152,44 @@ npx ampx sandbox  # Deploys functions + infrastructure
 
 ### Available Functions
 
-1. **create-superuser** - Direct Lambda function
-2. **create-superuser-api** - REST API endpoint
+1. **create-superuser** - Direct Lambda function for AWS CLI/SDK invocation
+2. **create-superuser-api** - REST API endpoint for HTTP requests
+
+**Important:** Use the correct function for your use case:
+
+- For AWS CLI: Use `create-superuser` (direct Lambda)
+- For HTTP requests: Use `create-superuser-api` (API Gateway)
 
 ### Usage Options
 
 #### AWS CLI (Direct Lambda)
 
+**Option 1: Using file payload (recommended)**
+
 ```bash
+# First, find your actual function name
+aws lambda list-functions --query 'Functions[?contains(FunctionName, `createSuperuser`)].FunctionName' --output text
+
+# Create payload file
+echo '{"email":"admin@example.com","password":"SecurePass123!","firstName":"Admin","lastName":"User"}' > payload.json
+
+# Invoke function (replace with your actual function name)
 aws lambda invoke \
-  --function-name "amplify-[app]-[branch]-createSuperuser" \
-  --payload '{"email":"admin@example.com","password":"SecurePass123!"}' \
+  --function-name "amplify-yourapp-sandbox-createSuperuser" \
+  --payload file://payload.json \
+  response.json
+
+# Check response
+cat response.json
+```
+
+**Option 2: Using base64 encoded payload**
+
+```bash
+# Replace with your actual function name
+aws lambda invoke \
+  --function-name "amplify-yourapp-sandbox-createSuperuser" \
+  --payload $(echo '{"email":"admin@example.com","password":"SecurePass123!"}' | base64) \
   response.json
 ```
 
