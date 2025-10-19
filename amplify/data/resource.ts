@@ -32,7 +32,7 @@ const schema = a.schema({
       categories: a.hasMany("PostCategory", "postId"),
     })
     .authorization((allow) => [
-      allow.publicApiKey().to(["read"]),
+      allow.publicApiKey(),
       allow.owner(),
       allow.groups(["admins", "super_admins"]),
     ]),
@@ -50,7 +50,7 @@ const schema = a.schema({
       isActive: a.boolean().default(true),
     })
     .authorization((allow) => [
-      allow.publicApiKey().to(["read"]),
+      allow.publicApiKey(),
       allow.groups(["admins", "super_admins"]),
     ]),
 
@@ -63,7 +63,7 @@ const schema = a.schema({
       posts: a.hasMany("PostTag", "tagId"),
     })
     .authorization((allow) => [
-      allow.publicApiKey().to(["read"]),
+      allow.publicApiKey(),
       allow.groups(["admins", "super_admins"]),
     ]),
 
@@ -76,7 +76,7 @@ const schema = a.schema({
       tag: a.belongsTo("Tag", "tagId"),
     })
     .authorization((allow) => [
-      allow.publicApiKey().to(["read"]),
+      allow.publicApiKey(),
       allow.groups(["admins", "super_admins"]),
     ]),
 
@@ -88,7 +88,7 @@ const schema = a.schema({
       category: a.belongsTo("Category", "categoryId"),
     })
     .authorization((allow) => [
-      allow.publicApiKey().to(["read"]),
+      allow.publicApiKey(),
       allow.groups(["admins", "super_admins"]),
     ]),
 

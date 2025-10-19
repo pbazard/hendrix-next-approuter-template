@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
+import toast from "react-hot-toast";
 import {
   Plus,
   Search,
@@ -55,10 +56,30 @@ export default function CrudTable({
     try {
       setLoading(true);
       const model = (client.models as any)[modelName];
+
+      if (!model) {
+        throw new Error(`Model ${modelName} not found`);
+      }
+
       const result = await model.list();
+      console.log(`[CRUD] Loaded ${modelName}:`, result);
+
+      if (
+        result?.errors &&
+        Array.isArray(result.errors) &&
+        result.errors.length > 0
+      ) {
+        console.error(`[CRUD] Errors loading ${modelName}:`, result.errors);
+        const errorMessage =
+          result.errors[0]?.message || "Unknown error occurred";
+        toast.error(`Error loading ${modelName}: ${errorMessage}`);
+        return;
+      }
+
       setData(result.data || []);
     } catch (error) {
-      console.error(`Error loading ${modelName}:`, error);
+      console.error(`[CRUD] Error loading ${modelName}:`, error);
+      toast.error(`Failed to load ${modelName}`);
     } finally {
       setLoading(false);
     }
@@ -79,39 +100,103 @@ export default function CrudTable({
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this item?")) return;
 
+    const loadingToast = toast.loading(`Deleting ${modelName}...`);
+
     try {
       const model = (client.models as any)[modelName];
-      await model.delete({ id });
+
+      if (!model) {
+        throw new Error(`Model ${modelName} not found`);
+      }
+
+      console.log(`[CRUD] Deleting ${modelName}:`, { id });
+      const result = await model.delete({ id });
+      console.log(`[CRUD] Delete result:`, result);
+
+      if (
+        result?.errors &&
+        Array.isArray(result.errors) &&
+        result.errors.length > 0
+      ) {
+        console.error(`[CRUD] Errors deleting ${modelName}:`, result.errors);
+        const errorMessage =
+          result.errors[0]?.message || "Unknown error occurred";
+        toast.error(`Error: ${errorMessage}`, { id: loadingToast });
+        return;
+      }
+
+      toast.success(`${modelName} deleted successfully!`, { id: loadingToast });
       await loadData();
     } catch (error) {
-      console.error(`Error deleting ${modelName}:`, error);
-      alert("Error deleting item");
+      console.error(`[CRUD] Error deleting ${modelName}:`, error);
+      toast.error(`Failed to delete ${modelName}`, { id: loadingToast });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const loadingToast = toast.loading(
+      editingItem ? `Updating ${modelName}...` : `Creating ${modelName}...`
+    );
+
     try {
       const model = (client.models as any)[modelName];
 
+      if (!model) {
+        throw new Error(`Model ${modelName} not found`);
+      }
+
+      let result;
       if (editingItem) {
         // For updates, include the ID and all form data
-        await model.update({ id: editingItem.id, ...formData });
+        console.log(`[CRUD] Updating ${modelName}:`, {
+          id: editingItem.id,
+          ...formData,
+        });
+        result = await model.update({ id: editingItem.id, ...formData });
       } else {
         // For creates, exclude ID and auto-generated fields to let Amplify generate them
         const createData = { ...formData };
         delete createData.id;
         delete createData.createdAt;
         delete createData.updatedAt;
-        await model.create(createData);
+        console.log(`[CRUD] Creating ${modelName}:`, createData);
+        result = await model.create(createData);
       }
+
+      console.log(
+        `[CRUD] ${editingItem ? "Update" : "Create"} result:`,
+        result
+      );
+
+      if (
+        result?.errors &&
+        Array.isArray(result.errors) &&
+        result.errors.length > 0
+      ) {
+        console.error(`[CRUD] Errors saving ${modelName}:`, result.errors);
+        const errorMessage =
+          result.errors[0]?.message || "Unknown error occurred";
+        toast.error(`Error: ${errorMessage}`, { id: loadingToast });
+        return;
+      }
+
+      toast.success(
+        editingItem
+          ? `${modelName} updated successfully!`
+          : `${modelName} created successfully!`,
+        { id: loadingToast }
+      );
 
       setShowModal(false);
       await loadData();
     } catch (error) {
-      console.error(`Error saving ${modelName}:`, error);
-      alert("Error saving item");
+      console.error(`[CRUD] Error saving ${modelName}:`, error);
+      toast.error(
+        `Failed to ${editingItem ? "update" : "create"} ${modelName}`,
+        { id: loadingToast }
+      );
     }
   };
 
