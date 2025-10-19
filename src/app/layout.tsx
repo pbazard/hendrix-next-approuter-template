@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AmplifyProvider from "./components/AmplifyProvider";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { AuthProvider } from "./components/AuthProvider";
 import ConditionalLayout from "./components/ConditionalLayout";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -22,9 +23,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <AmplifyProvider>
-          <ThemeProvider>
-            <ConditionalLayout>{children}</ConditionalLayout>
-          </ThemeProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <ConditionalLayout>{children}</ConditionalLayout>
+            </ThemeProvider>
+          </AuthProvider>
         </AmplifyProvider>
       </body>
     </html>

@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "@/amplify/data/resource";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -20,37 +18,43 @@ import {
   Database,
   ChevronDown,
   ChevronRight,
-  Table,
   Link as LinkIcon,
   Cog,
+  Loader2,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-
-const client = generateClient<Schema>();
+import { useAuth } from "../components/AuthProvider";
+import LoginForm from "../components/LoginForm";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { user, loading, isSuperAdmin, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [schemaOpen, setSchemaOpen] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    // TODO: Implement proper authentication check
-    // For now, we'll simulate super admin access
-    setIsAuthenticated(true);
-    setUserRole("SUPER_ADMIN");
-  }, []);
+  // Debug logging
+  console.log("🔍 Admin Layout Debug:");
+  console.log("- User:", user);
+  console.log("- Loading:", loading);
+  console.log("- isSuperAdmin:", isSuperAdmin);
+  console.log("- User groups:", user?.groups);
 
   const menuItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -109,27 +113,74 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const bottomMenuItems = [];
 
-  if (!isAuthenticated || userRole !== "SUPER_ADMIN") {
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md p-8">
+          <div className="text-center space-y-4">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+            <h2 className="text-lg font-semibold">Loading...</h2>
+            <p className="text-muted-foreground">Checking authentication</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Not authenticated
+  if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md p-8">
-          <div className="text-center">
+        <div className="w-full max-w-md space-y-6">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center space-x-2">
+                <Shield className="w-5 h-5" />
+                <span>Admin Access Required</span>
+              </CardTitle>
+              <CardDescription>
+                Please sign in with your admin credentials
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          <LoginForm />
+        </div>
+      </div>
+    );
+  }
+
+  // Not super admin
+  if (!isSuperAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
             <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <LogOut className="w-8 h-8 text-destructive" />
+              <Shield className="w-8 h-8 text-destructive" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              Access Denied
-            </h1>
-            <p className="text-muted-foreground mb-6">
+            <CardTitle className="text-destructive">Access Denied</CardTitle>
+            <CardDescription>
               You need super admin privileges to access this area.
-            </p>
-            <Button asChild>
-              <Link href="/" className="inline-flex items-center space-x-2">
-                <Home className="w-4 h-4" />
-                <span>Go Home</span>
-              </Link>
-            </Button>
-          </div>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center text-sm text-muted-foreground">
+              Signed in as: <span className="font-medium">{user.email}</span>
+            </div>
+            <div className="flex flex-col space-y-2">
+              <Button onClick={signOut} variant="outline" className="w-full">
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+              <Button asChild variant="ghost" className="w-full">
+                <Link href="/">
+                  <Home className="w-4 h-4 mr-2" />
+                  Go Home
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
         </Card>
       </div>
     );
@@ -214,14 +265,28 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </CollapsibleContent>
           </Collapsible>
         </nav>
-        <div className="absolute bottom-0 left-0 w-full p-4">
-          <Link
-            href="/"
-            className="flex items-center px-4 py-3 my-1 rounded-lg text-muted-foreground hover:bg-primary/10 hover:text-foreground"
+        <div className="absolute bottom-0 left-0 w-full p-4 space-y-2">
+          <div className="text-xs text-muted-foreground px-4">
+            Signed in as: {user.email}
+          </div>
+          <Button
+            variant="ghost"
+            className="w-full justify-start px-4 py-3 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            onClick={signOut}
           >
             <LogOut className="w-5 h-5 mr-3" />
-            <span className="font-medium">Logout</span>
-          </Link>
+            <span className="font-medium">Sign Out</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start px-4 py-3"
+            asChild
+          >
+            <Link href="/">
+              <Home className="w-5 h-5 mr-3" />
+              <span className="font-medium">Back to Site</span>
+            </Link>
+          </Button>
         </div>
       </div>
 
