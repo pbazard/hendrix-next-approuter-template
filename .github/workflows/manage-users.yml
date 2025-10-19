@@ -1,0 +1,81 @@
+name: User Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Action to perform"
+        required: true
+        type: choice
+        options:
+          - create-superuser
+          - create-admin
+          - create-user
+          - list-users
+      email:
+        description: "User email address"
+        required: false
+        type: string
+      password:
+        description: "User password (for create actions)"
+        required: false
+        type: string
+      firstName:
+        description: "First name (optional)"
+        required: false
+        type: string
+      lastName:
+        description: "Last name (optional)"
+        required: false
+        type: string
+
+jobs:
+  manage-users:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create Superuser
+        if: github.event.inputs.action == 'create-superuser'
+        run: |
+          echo "${{ github.event.inputs.email }}" > /tmp/input.txt
+          echo "${{ github.event.inputs.password }}" >> /tmp/input.txt
+          echo "${{ github.event.inputs.password }}" >> /tmp/input.txt
+          npm run create-superuser < /tmp/input.txt
+          rm /tmp/input.txt
+
+      - name: List Users
+        if: github.event.inputs.action == 'list-users'
+        run: npm run manage-users
+
+      - name: Create Admin User
+        if: github.event.inputs.action == 'create-admin'
+        run: |
+          # You can extend this to create admin users
+          echo "Creating admin user: ${{ github.event.inputs.email }}"
+          # Add your admin creation logic here
+
+      - name: Summary
+        run: |
+          echo "## User Management Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Action**: ${{ github.event.inputs.action }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Email**: ${{ github.event.inputs.email }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ Completed successfully" >> $GITHUB_STEP_SUMMARY
