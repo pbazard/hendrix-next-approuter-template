@@ -1,15 +1,126 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 
-/*== STEP 1 ===============================================================
-The section below creates a Todo database table with a "content" field. Try
-adding a new "isDone" field as a boolean. The authorization rule below
-specifies that any user authenticated via an API key can "create", "read",
-"update", and "delete" any "Todo" records.
-=========================================================================*/
 const schema = a.schema({
+  // User management
+  User: a
+    .model({
+      email: a.string().required(),
+      firstName: a.string(),
+      lastName: a.string(),
+      role: a.enum(["USER", "ADMIN", "SUPER_ADMIN"]),
+      isActive: a.boolean(),
+      lastLoginAt: a.datetime(),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [
+      allow.publicApiKey(),
+      allow.owner(),
+      allow.groups(["admins", "super_admins"]),
+    ]),
+
+  // Content management
+  Post: a
+    .model({
+      title: a.string().required(),
+      content: a.string(),
+      excerpt: a.string(),
+      status: a.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+      publishedAt: a.datetime(),
+      authorId: a.id(),
+      author: a.belongsTo("User", "authorId"),
+      tags: a.hasMany("PostTag", "postId"),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [
+      allow.publicApiKey().to(["read"]),
+      allow.owner(),
+      allow.groups(["admins", "super_admins"]),
+    ]),
+
+  // Category management
+  Category: a
+    .model({
+      name: a.string().required(),
+      slug: a.string().required(),
+      description: a.string(),
+      parentId: a.id(),
+      parent: a.belongsTo("Category", "parentId"),
+      children: a.hasMany("Category", "parentId"),
+      posts: a.hasMany("PostCategory", "categoryId"),
+      isActive: a.boolean(),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [
+      allow.publicApiKey().to(["read"]),
+      allow.groups(["admins", "super_admins"]),
+    ]),
+
+  // Tag management
+  Tag: a
+    .model({
+      name: a.string().required(),
+      slug: a.string().required(),
+      color: a.string(),
+      posts: a.hasMany("PostTag", "tagId"),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [
+      allow.publicApiKey().to(["read"]),
+      allow.groups(["admins", "super_admins"]),
+    ]),
+
+  // Many-to-many relationships
+  PostTag: a
+    .model({
+      postId: a.id().required(),
+      tagId: a.id().required(),
+      post: a.belongsTo("Post", "postId"),
+      tag: a.belongsTo("Tag", "tagId"),
+    })
+    .authorization((allow) => [
+      allow.publicApiKey().to(["read"]),
+      allow.groups(["admins", "super_admins"]),
+    ]),
+
+  PostCategory: a
+    .model({
+      postId: a.id().required(),
+      categoryId: a.id().required(),
+      post: a.belongsTo("Post", "postId"),
+      category: a.belongsTo("Category", "categoryId"),
+    })
+    .authorization((allow) => [
+      allow.publicApiKey().to(["read"]),
+      allow.groups(["admins", "super_admins"]),
+    ]),
+
+  // Settings management
+  Setting: a
+    .model({
+      key: a.string().required(),
+      value: a.string(),
+      type: a.enum(["STRING", "NUMBER", "BOOLEAN", "JSON"]),
+      description: a.string(),
+      isPublic: a.boolean(),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [
+      allow.publicApiKey().to(["read"]),
+      allow.groups(["super_admins"]),
+    ]),
+
+  // Legacy Todo model for backward compatibility
   Todo: a
     .model({
       content: a.string(),
+      isDone: a.boolean(),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
 });
