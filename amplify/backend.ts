@@ -65,4 +65,4 @@ const lambdaIntegration = new LambdaIntegration(
 // Create the /create-superuser endpoint
 const createSuperuserResource = restApi.root.addResource("create-superuser");
 createSuperuserResource.addMethod("POST", lambdaIntegration);
-createSuperuserResource.addMethod("OPTIONS", lambdaIntegration);
+// OPTIONS method is automatically created by defaultCorsPreflightOptions
