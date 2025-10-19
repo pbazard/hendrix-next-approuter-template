@@ -1,11 +1,15 @@
 "use client";
 
 import { Sun, Moon, User, Settings, LogOut } from "lucide-react";
-import { useTheme } from "./ThemeProvider";
+import { useTheme } from "next-themes";
 import { useState } from "react";
 
 export default function TopBar() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (

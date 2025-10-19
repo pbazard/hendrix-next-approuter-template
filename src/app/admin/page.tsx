@@ -18,6 +18,9 @@ import {
   Activity,
   TrendingUp,
 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const client = generateClient<Schema>();
 
@@ -73,186 +76,162 @@ export default function AdminDashboard() {
       value: stats.users,
       href: "/admin/users",
       icon: Users,
-      color: "from-blue-500 to-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20",
-      textColor: "text-blue-600 dark:text-blue-400",
+      color: "text-blue-400",
     },
     {
       name: "Posts",
       value: stats.posts,
       href: "/admin/posts",
       icon: FileText,
-      color: "from-green-500 to-green-600",
-      bgColor: "bg-green-50 dark:bg-green-900/20",
-      textColor: "text-green-600 dark:text-green-400",
+      color: "text-green-400",
     },
     {
       name: "Categories",
       value: stats.categories,
       href: "/admin/categories",
       icon: Folder,
-      color: "from-yellow-500 to-yellow-600",
-      bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
-      textColor: "text-yellow-600 dark:text-yellow-400",
+      color: "text-yellow-400",
     },
     {
       name: "Tags",
       value: stats.tags,
       href: "/admin/tags",
       icon: Tag,
-      color: "from-purple-500 to-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-900/20",
-      textColor: "text-purple-600 dark:text-purple-400",
+      color: "text-purple-400",
     },
     {
       name: "Todos",
       value: stats.todos,
       href: "/admin/todos",
       icon: CheckSquare,
-      color: "from-red-500 to-red-600",
-      bgColor: "bg-red-50 dark:bg-red-900/20",
-      textColor: "text-red-600 dark:text-red-400",
+      color: "text-pink-400",
     },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  const quickActions = [
+    { name: "New Post", href: "/admin/posts/new", icon: Plus },
+    { name: "New User", href: "/admin/users/new", icon: UserPlus },
+    { name: "New Category", href: "/admin/categories/new", icon: FolderPlus },
+  ];
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Dashboard
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Welcome to the Hendrix administration panel
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">
+          Welcome back, Admin. Here's a snapshot of your application.
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Link
-              key={card.name}
-              href={card.href}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md hover:scale-105 transition-all duration-200"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {card.name}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                    {card.value}
-                  </p>
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        {statCards.map((card) => (
+          <Card key={card.name} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <Link href={card.href} className="block">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {card.name}
+                    </p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {loading ? "..." : card.value}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-primary/10">
+                    <card.icon className={`w-6 h-6 ${card.color}`} />
+                  </div>
                 </div>
-                <div className={`${card.bgColor} rounded-lg p-3`}>
-                  <Icon className={`w-6 h-6 ${card.textColor}`} />
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+              </Link>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Quick Actions and System Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quick Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center space-x-2 mb-6">
-            <TrendingUp className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Quick Actions
-            </h2>
-          </div>
-          <div className="space-y-3">
-            <Link
-              href="/admin/posts/new"
-              className="flex items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors group"
-            >
-              <div className="bg-blue-500 rounded-lg p-2 mr-4">
-                <Plus className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-medium text-blue-700 dark:text-blue-400 group-hover:text-blue-800 dark:group-hover:text-blue-300">
-                Create New Post
-              </span>
-            </Link>
-            <Link
-              href="/admin/users/new"
-              className="flex items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group"
-            >
-              <div className="bg-green-500 rounded-lg p-2 mr-4">
-                <UserPlus className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-medium text-green-700 dark:text-green-400 group-hover:text-green-800 dark:group-hover:text-green-300">
-                Add New User
-              </span>
-            </Link>
-            <Link
-              href="/admin/categories/new"
-              className="flex items-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors group"
-            >
-              <div className="bg-yellow-500 rounded-lg p-2 mr-4">
-                <FolderPlus className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-medium text-yellow-700 dark:text-yellow-400 group-hover:text-yellow-800 dark:group-hover:text-yellow-300">
-                Create Category
-              </span>
-            </Link>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Recent Activity */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Activity className="w-5 h-5 mr-3" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <div className="w-10 h-10 rounded-full bg-muted flex-shrink-0"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-muted rounded w-3/4"></div>
+                    <div className="h-3 bg-muted/50 rounded w-1/2"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* System Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center space-x-2 mb-6">
-            <Activity className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              System Status
-            </h2>
-          </div>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <Database className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                <span className="text-gray-600 dark:text-gray-400">
-                  Database
+        {/* Quick Actions & System Status */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <TrendingUp className="w-5 h-5 mr-3" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {quickActions.map((action) => (
+                <Button
+                  key={action.name}
+                  variant="ghost"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link href={action.href}>
+                    <action.icon className="w-4 h-4 mr-3" />
+                    {action.name}
+                  </Link>
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Database className="w-5 h-5 mr-3" />
+                System Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Database</span>
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800"
+                >
+                  Online
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">API</span>
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800"
+                >
+                  Healthy
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Last updated</span>
+                <span className="text-sm font-medium">
+                  {new Date().toLocaleTimeString()}
                 </span>
               </div>
-              <span className="px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 rounded-full text-sm font-medium">
-                Connected
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                <span className="text-gray-600 dark:text-gray-400">
-                  Last Backup
-                </span>
-              </div>
-              <span className="text-gray-900 dark:text-white font-medium">
-                Never
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <Activity className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                <span className="text-gray-600 dark:text-gray-400">
-                  Version
-                </span>
-              </div>
-              <span className="text-gray-900 dark:text-white font-medium">
-                1.0.0
-              </span>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

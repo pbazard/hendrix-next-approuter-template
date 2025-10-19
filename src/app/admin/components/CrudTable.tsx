@@ -109,81 +109,55 @@ export default function CrudTable({
     }
   };
 
-  const filteredData = data.filter((item) => {
-    if (!searchTerm) return true;
-    return searchFields.some((field) =>
-      item[field]?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  const renderField = (field: Field, value: any, record: any) => {
+  const renderCell = (item: any, field: Field) => {
+    const value = item[field.key];
     if (field.render) {
-      return field.render(value, record);
+      return field.render(value, item);
     }
 
     switch (field.type) {
       case "boolean":
         return value ? (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">
             <Check className="w-3 h-3 mr-1" />
             Yes
           </span>
         ) : (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300">
             <X className="w-3 h-3 mr-1" />
             No
           </span>
         );
       case "datetime":
-        return value ? (
-          <span className="text-gray-900 dark:text-white">
-            {new Date(value).toLocaleDateString()}
-          </span>
-        ) : (
-          <span className="text-gray-400">-</span>
-        );
+        return value ? new Date(value).toLocaleString() : "-";
       case "enum":
-        return value ? (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
             {value}
           </span>
-        ) : (
-          <span className="text-gray-400">-</span>
         );
       default:
-        return (
-          <span className="text-gray-900 dark:text-white">
-            {value || <span className="text-gray-400">-</span>}
-          </span>
-        );
+        return value || "-";
     }
   };
 
-  const renderFormField = (field: Field) => {
+  const renderInput = (field: Field) => {
     const value = formData[field.key] || "";
-    const baseInputClasses =
-      "block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent px-3 py-2";
+    const baseClasses =
+      "block w-full bg-background/50 dark:bg-background/20 pl-3 pr-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary focus:border-primary transition-all";
 
     switch (field.type) {
       case "boolean":
         return (
           <input
             type="checkbox"
-            checked={value}
+            checked={!!value}
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.checked })
             }
-            className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-2"
+            className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
           />
         );
-
       case "enum":
       case "select":
         return (
@@ -192,7 +166,7 @@ export default function CrudTable({
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.value })
             }
-            className={baseInputClasses}
+            className={baseClasses}
             required={field.required}
           >
             <option value="">Select...</option>
@@ -206,7 +180,6 @@ export default function CrudTable({
             ))}
           </select>
         );
-
       case "number":
         return (
           <input
@@ -215,11 +188,10 @@ export default function CrudTable({
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.value })
             }
-            className={baseInputClasses}
+            className={baseClasses}
             required={field.required}
           />
         );
-
       case "datetime":
         return (
           <input
@@ -228,11 +200,10 @@ export default function CrudTable({
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.value })
             }
-            className={baseInputClasses}
+            className={baseClasses}
             required={field.required}
           />
         );
-
       default:
         return (
           <input
@@ -241,201 +212,182 @@ export default function CrudTable({
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.value })
             }
-            className={baseInputClasses}
+            className={baseClasses}
             required={field.required}
           />
         );
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
+  const filteredData = data.filter((item) => {
+    if (!searchTerm) return true;
+    return searchFields.some((field) =>
+      String(item[field]).toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }
+  });
+
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {title}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage your {title.toLowerCase()}
-          </p>
+    <div className="bg-card/50 dark:bg-card/20 glassmorphism p-6 rounded-2xl shadow-lg border border-white/10">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-background/50 dark:bg-background/20 pl-10 pr-4 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+            />
+          </div>
+          <button
+            onClick={handleCreate}
+            className="flex items-center space-x-2 bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            <span>New</span>
+          </button>
         </div>
-        <button
-          onClick={handleCreate}
-          className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Create New</span>
-        </button>
       </div>
 
-      {/* Search */}
-      {searchFields.length > 0 && (
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-      )}
-
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                {fields.map((field) => (
-                  <th
-                    key={field.key}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                  >
-                    {field.label}
-                  </th>
-                ))}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Actions
+      <div className="overflow-x-auto">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="border-b border-border">
+              {fields.map((field) => (
+                <th
+                  key={field.key}
+                  className="p-4 font-semibold text-muted-foreground"
+                >
+                  {field.label}
                 </th>
+              ))}
+              <th className="p-4 font-semibold text-muted-foreground text-right">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td
+                  colSpan={fields.length + 1}
+                  className="text-center p-8 text-muted-foreground"
+                >
+                  Loading...
+                </td>
               </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {paginatedData.map((item) => (
+            ) : (
+              paginatedData.map((item) => (
                 <tr
                   key={item.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="border-b border-border hover:bg-primary/5"
                 >
                   {fields.map((field) => (
-                    <td
-                      key={field.key}
-                      className="px-6 py-4 whitespace-nowrap text-sm"
-                    >
-                      {renderField(field, item[field.key], item)}
+                    <td key={field.key} className="p-4 text-foreground">
+                      {renderCell(item, field)}
                     </td>
                   ))}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
+                  <td className="p-4 text-right">
+                    <div className="inline-flex rounded-md shadow-sm">
                       <button
                         onClick={() => handleEdit(item)}
-                        className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                        className="px-3 py-2 text-sm font-medium text-foreground bg-background hover:bg-muted rounded-l-lg border border-border"
                       >
                         <Edit className="w-4 h-4" />
-                        <span>Edit</span>
                       </button>
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="inline-flex items-center space-x-1 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
+                        className="px-3 py-2 text-sm font-medium text-destructive bg-background hover:bg-muted rounded-r-lg border-t border-b border-r border-border"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span>Delete</span>
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-            {Math.min(currentPage * itemsPerPage, filteredData.length)} of{" "}
-            {filteredData.length} results
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="inline-flex items-center space-x-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Previous</span>
-            </button>
-            <button
-              onClick={() =>
-                setCurrentPage(Math.min(totalPages, currentPage + 1))
-              }
-              disabled={currentPage === totalPages}
-              className="inline-flex items-center space-x-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+      <div className="flex justify-between items-center mt-6">
+        <span className="text-sm text-muted-foreground">
+          Showing {paginatedData.length} of {filteredData.length} results
+        </span>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 rounded-lg bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed border border-border"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="text-sm font-medium text-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 rounded-lg bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed border border-border"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-          <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {editingItem ? "Edit" : "Create"} {title.slice(0, -1)}
-                </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card/80 glassmorphism w-full max-w-2xl p-8 rounded-2xl shadow-2xl border border-white/10">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-foreground">
+                {editingItem ? `Edit ${modelName}` : `New ${modelName}`}
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {fields.map((field) => (
+                <div key={field.key}>
+                  <label
+                    htmlFor={field.key}
+                    className="block text-sm font-medium text-muted-foreground mb-2"
+                  >
+                    {field.label}
+                  </label>
+                  {renderInput(field)}
+                </div>
+              ))}
+              <div className="flex justify-end space-x-4 pt-4">
                 <button
+                  type="button"
                   onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                  className="px-6 py-2 rounded-lg bg-background hover:bg-muted border border-border text-foreground font-medium"
                 >
-                  <X className="w-5 h-5" />
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+                >
+                  {editingItem ? "Save Changes" : "Create"}
                 </button>
               </div>
-
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                  {fields
-                    .filter(
-                      (f) =>
-                        f.key !== "id" &&
-                        f.key !== "createdAt" &&
-                        f.key !== "updatedAt"
-                    )
-                    .map((field) => (
-                      <div key={field.key}>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          {field.label}{" "}
-                          {field.required && (
-                            <span className="text-red-500">*</span>
-                          )}
-                        </label>
-                        {renderFormField(field)}
-                      </div>
-                    ))}
-                </div>
-
-                <div className="flex justify-end space-x-3 mt-8">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                  >
-                    {editingItem ? "Update" : "Create"}
-                  </button>
-                </div>
-              </form>
-            </div>
+            </form>
           </div>
         </div>
       )}
