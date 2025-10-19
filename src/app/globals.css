@@ -122,3 +122,20 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
+/* Handle browser extension attributes to prevent hydration warnings */
+[cz-shortcut-listen],
+[data-new-gr-c-s-check-loaded],
+[data-gr-ext-installed],
+[data-lt-installed],
+[data-darkreader-mode],
+[data-darkreader-scheme] {
+  /* These attributes are added by browser extensions and don't affect styling */
+}
+
+/* Suppress hydration warnings for common browser extension attributes */
+body[cz-shortcut-listen="true"],
+body[data-new-gr-c-s-check-loaded],
+body[data-gr-ext-installed],
+body[data-lt-installed] {
+  /* Browser extension attributes - no visual impact */
+}

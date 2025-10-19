@@ -96,9 +96,15 @@ export default function CrudTable({
       const model = (client.models as any)[modelName];
 
       if (editingItem) {
+        // For updates, include the ID and all form data
         await model.update({ id: editingItem.id, ...formData });
       } else {
-        await model.create(formData);
+        // For creates, exclude ID and auto-generated fields to let Amplify generate them
+        const createData = { ...formData };
+        delete createData.id;
+        delete createData.createdAt;
+        delete createData.updatedAt;
+        await model.create(createData);
       }
 
       setShowModal(false);
@@ -144,7 +150,22 @@ export default function CrudTable({
   const renderInput = (field: Field) => {
     const value = formData[field.key] || "";
     const baseClasses =
-      "block w-full bg-background/50 dark:bg-background/20 pl-3 pr-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary focus:border-primary transition-all";
+      "block w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors";
+    const readOnlyClasses =
+      "block w-full bg-muted border border-border rounded-md px-3 py-2 text-sm text-muted-foreground cursor-not-allowed";
+
+    // Make ID field read-only when editing
+    if (field.key === "id" && editingItem) {
+      return (
+        <input
+          type="text"
+          value={value}
+          readOnly
+          className={readOnlyClasses}
+          title="ID is auto-generated and cannot be modified"
+        />
+      );
+    }
 
     switch (field.type) {
       case "boolean":
@@ -155,7 +176,7 @@ export default function CrudTable({
             onChange={(e) =>
               setFormData({ ...formData, [field.key]: e.target.checked })
             }
-            className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+            className="h-4 w-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
           />
         );
       case "enum":
@@ -347,44 +368,64 @@ export default function CrudTable({
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card/80 glassmorphism w-full max-w-2xl p-8 rounded-2xl shadow-2xl border border-white/10">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-foreground">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 pt-24">
+          <div className="bg-card w-full max-w-md p-6 rounded-lg shadow-xl border border-border mt-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-foreground">
                 {editingItem ? `Edit ${modelName}` : `New ${modelName}`}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
                 className="text-muted-foreground hover:text-foreground"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {fields.map((field) => (
-                <div key={field.key}>
-                  <label
-                    htmlFor={field.key}
-                    className="block text-sm font-medium text-muted-foreground mb-2"
-                  >
-                    {field.label}
-                  </label>
-                  {renderInput(field)}
-                </div>
-              ))}
-              <div className="flex justify-end space-x-4 pt-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {fields
+                .filter((field) => {
+                  // Hide ID field when creating new items
+                  if (field.key === "id" && !editingItem) {
+                    return false;
+                  }
+                  // Hide auto-generated timestamp fields when creating
+                  if (
+                    !editingItem &&
+                    (field.key === "createdAt" || field.key === "updatedAt")
+                  ) {
+                    return false;
+                  }
+                  return true;
+                })
+                .map((field) => (
+                  <div key={field.key}>
+                    <label
+                      htmlFor={field.key}
+                      className="block text-sm font-medium text-foreground mb-1"
+                    >
+                      {field.label}
+                      {field.key === "id" && editingItem && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          (auto-generated)
+                        </span>
+                      )}
+                    </label>
+                    {renderInput(field)}
+                  </div>
+                ))}
+              <div className="flex justify-end space-x-3 pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-6 py-2 rounded-lg bg-background hover:bg-muted border border-border text-foreground font-medium"
+                  className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+                  className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 font-medium text-sm"
                 >
-                  {editingItem ? "Save Changes" : "Create"}
+                  {editingItem ? "Save" : "Create"}
                 </button>
               </div>
             </form>

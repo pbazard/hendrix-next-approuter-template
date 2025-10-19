@@ -8,10 +8,9 @@ const schema = a.schema({
       firstName: a.string(),
       lastName: a.string(),
       role: a.enum(["USER", "ADMIN", "SUPER_ADMIN"]),
-      isActive: a.boolean(),
+      isActive: a.boolean().default(true),
       lastLoginAt: a.datetime(),
-      createdAt: a.datetime(),
-      updatedAt: a.datetime(),
+      posts: a.hasMany("Post", "authorId"),
     })
     .authorization((allow) => [
       allow.publicApiKey(),
@@ -30,8 +29,7 @@ const schema = a.schema({
       authorId: a.id(),
       author: a.belongsTo("User", "authorId"),
       tags: a.hasMany("PostTag", "postId"),
-      createdAt: a.datetime(),
-      updatedAt: a.datetime(),
+      categories: a.hasMany("PostCategory", "postId"),
     })
     .authorization((allow) => [
       allow.publicApiKey().to(["read"]),
@@ -49,9 +47,7 @@ const schema = a.schema({
       parent: a.belongsTo("Category", "parentId"),
       children: a.hasMany("Category", "parentId"),
       posts: a.hasMany("PostCategory", "categoryId"),
-      isActive: a.boolean(),
-      createdAt: a.datetime(),
-      updatedAt: a.datetime(),
+      isActive: a.boolean().default(true),
     })
     .authorization((allow) => [
       allow.publicApiKey().to(["read"]),
@@ -65,8 +61,6 @@ const schema = a.schema({
       slug: a.string().required(),
       color: a.string(),
       posts: a.hasMany("PostTag", "tagId"),
-      createdAt: a.datetime(),
-      updatedAt: a.datetime(),
     })
     .authorization((allow) => [
       allow.publicApiKey().to(["read"]),
@@ -105,9 +99,7 @@ const schema = a.schema({
       value: a.string(),
       type: a.enum(["STRING", "NUMBER", "BOOLEAN", "JSON"]),
       description: a.string(),
-      isPublic: a.boolean(),
-      createdAt: a.datetime(),
-      updatedAt: a.datetime(),
+      isPublic: a.boolean().default(false),
     })
     .authorization((allow) => [
       allow.publicApiKey().to(["read"]),
@@ -118,9 +110,7 @@ const schema = a.schema({
   Todo: a
     .model({
       content: a.string(),
-      isDone: a.boolean(),
-      createdAt: a.datetime(),
-      updatedAt: a.datetime(),
+      isDone: a.boolean().default(false),
     })
     .authorization((allow) => [allow.publicApiKey()]),
 });

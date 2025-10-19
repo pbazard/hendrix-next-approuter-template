@@ -80,7 +80,7 @@ export default function TopBar() {
                       {user.email}
                     </div>
                     <a
-                      href="#"
+                      href="/profile"
                       className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       <User className="w-4 h-4" />

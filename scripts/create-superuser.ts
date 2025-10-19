@@ -55,7 +55,7 @@ function questionHidden(prompt: string): Promise<string> {
 }
 
 async function createSuperuser() {
-  console.log("🚀 Hendrix Superuser Creation");
+  console.log("[ROCKET] Hendrix Superuser Creation");
   console.log("==============================\n");
 
   try {
@@ -69,35 +69,35 @@ async function createSuperuser() {
     // Get user input
     const email = await question("Email address: ");
     if (!email || !email.includes("@")) {
-      console.error("❌ Please enter a valid email address");
+      console.error("[X] Please enter a valid email address");
       process.exit(1);
     }
 
     const password = await questionHidden("Password: ");
     if (!password || password.length < 8) {
-      console.error("❌ Password must be at least 8 characters long");
+      console.error("[X] Password must be at least 8 characters long");
       process.exit(1);
     }
 
     const confirmPassword = await questionHidden("Password (again): ");
     if (password !== confirmPassword) {
-      console.error("❌ Passwords don't match");
+      console.error("[X] Passwords don't match");
       process.exit(1);
     }
 
-    console.log("\n🔄 Creating superuser...");
+    console.log("\n[LOADING] Creating superuser...");
 
     // Check if user already exists
     const existingUser = await cognitoAdmin.getUser(email);
     if (existingUser) {
-      console.log(`⚠️  User ${email} already exists`);
+      console.log(`[WARNING] User ${email} already exists`);
       const addToGroup = await question("Add to super_admins group? (y/N): ");
       if (
         addToGroup.toLowerCase() === "y" ||
         addToGroup.toLowerCase() === "yes"
       ) {
         await cognitoAdmin.addUserToGroup(email, "super_admins");
-        console.log("✅ User added to super_admins group");
+        console.log("[CHECK] User added to super_admins group");
       }
     } else {
       // Create user
@@ -109,12 +109,12 @@ async function createSuperuser() {
 
     // Show user info
     const groups = await cognitoAdmin.getUserGroups(email);
-    console.log("\n✅ Superuser created successfully!");
-    console.log(`📧 Email: ${email}`);
-    console.log(`👥 Groups: ${groups.join(", ")}`);
-    console.log("\n🎉 You can now sign in to the admin panel!");
+    console.log("\n[CHECK] Superuser created successfully!");
+    console.log(`[MAIL] Email: ${email}`);
+    console.log(`[USERS] Groups: ${groups.join(", ")}`);
+    console.log("\n[PARTY] You can now sign in to the admin panel!");
   } catch (error: any) {
-    console.error("❌ Error creating superuser:", error.message);
+    console.error("[X] Error creating superuser:", error.message);
     process.exit(1);
   } finally {
     rl.close();

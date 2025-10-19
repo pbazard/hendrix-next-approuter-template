@@ -1,6 +1,7 @@
 "use client";
 
 import CrudTable from "../components/CrudTable";
+import { Globe, Lock } from "lucide-react";
 
 const settingFields = [
   { key: "id", label: "ID", type: "string" as const },
@@ -17,7 +18,21 @@ const settingFields = [
     key: "isPublic",
     label: "Public",
     type: "boolean" as const,
-    render: (value: boolean) => (value ? "🌐 Public" : "🔒 Private"),
+    render: (value: boolean) => (
+      <div className="flex items-center space-x-2">
+        {value ? (
+          <>
+            <Globe className="w-4 h-4 text-green-500" />
+            <span>Public</span>
+          </>
+        ) : (
+          <>
+            <Lock className="w-4 h-4 text-red-500" />
+            <span>Private</span>
+          </>
+        )}
+      </div>
+    ),
   },
   { key: "createdAt", label: "Created", type: "datetime" as const },
 ];

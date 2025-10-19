@@ -29,6 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   const checkUser = async () => {
     try {
@@ -90,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    setMounted(true);
     checkUser();
 
     // Listen for auth events
@@ -124,6 +126,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user?.groups?.includes("admins") ||
     user?.groups?.includes("super_admins") ||
     false;
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <AuthContext.Provider
+        value={{
+          user: null,
+          loading: true,
+          signOut: handleSignOut,
+          isSuperAdmin: false,
+          isAdmin: false,
+        }}
+      >
+        <div style={{ visibility: "hidden" }}>{children}</div>
+      </AuthContext.Provider>
+    );
+  }
 
   return (
     <AuthContext.Provider

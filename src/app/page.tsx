@@ -1,29 +1,41 @@
 "use client";
 
-import { Zap, ArrowRight, BookOpen, Settings, Sun, Moon } from "lucide-react";
+import {
+  Zap,
+  ArrowRight,
+  BookOpen,
+  Settings,
+  Sun,
+  Moon,
+  Heart,
+} from "lucide-react";
 import { useTheme } from "./components/ThemeProvider";
+import { useIsClient } from "./hooks/useIsClient";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
+  const isClient = useIsClient();
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center transition-colors relative">
-      {/* Floating theme toggle */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={toggleTheme}
-        className="fixed top-6 right-6 z-50 backdrop-blur-md"
-        aria-label="Toggle theme"
-      >
-        {theme === "light" ? (
-          <Moon className="h-4 w-4" />
-        ) : (
-          <Sun className="h-4 w-4" />
-        )}
-      </Button>
+      {/* Floating theme toggle - only render on client */}
+      {isClient && (
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleTheme}
+          className="fixed top-6 right-6 z-50 backdrop-blur-md"
+          aria-label="Toggle theme"
+        >
+          {theme === "light" ? (
+            <Moon className="h-4 w-4" />
+          ) : (
+            <Sun className="h-4 w-4" />
+          )}
+        </Button>
+      )}
 
       <div className="text-center space-y-8 p-8 max-w-4xl mx-auto">
         <div className="mb-8 flex justify-center">
@@ -66,8 +78,10 @@ export default function Home() {
           </Button>
         </div>
 
-        <div className="mt-12 text-muted-foreground text-sm">
-          Built with ❤️ using modern web technologies
+        <div className="mt-12 text-muted-foreground text-sm flex items-center justify-center space-x-1">
+          <span>Built with</span>
+          <Heart className="w-4 h-4 text-red-500 fill-current" />
+          <span>using modern web technologies</span>
         </div>
       </div>
     </div>

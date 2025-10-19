@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
+import { useIsClient } from "../hooks/useIsClient";
 import Link from "next/link";
 import {
   Users,
@@ -22,8 +23,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const client = generateClient<Schema>();
-
 interface Stats {
   users: number;
   posts: number;
@@ -41,30 +40,100 @@ export default function AdminDashboard() {
     todos: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const isClient = useIsClient();
 
   useEffect(() => {
-    loadStats();
-  }, []);
+    if (isClient) {
+      loadStats();
+    }
+  }, [isClient]);
 
   const loadStats = async () => {
     try {
-      const [users, posts, categories, tags, todos] = await Promise.all([
-        client.models.User.list(),
-        client.models.Post.list(),
-        client.models.Category.list(),
-        client.models.Tag.list(),
-        client.models.Todo.list(),
-      ]);
+      setLoading(true);
+      setError(null);
+
+      // Add a small delay to ensure Amplify is fully configured
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Generate client only when needed and on client side
+      const client = generateClient<Schema>();
+
+      console.log("[SEARCH] Client:", client);
+      console.log("[SEARCH] Client models:", client?.models);
+
+      // Check if client and models are available
+      if (!client) {
+        throw new Error("Amplify client is null or undefined");
+      }
+
+      if (!client.models) {
+        throw new Error("Amplify client models are not available");
+      }
+
+      // Test each model individually to identify which one is causing issues
+      console.log("[BAR_CHART] Loading stats...");
+
+      let users, posts, categories, tags, todos;
+
+      try {
+        console.log("[USERS] Loading users...");
+        users = await client.models.User.list();
+        console.log("[CHECK] Users loaded:", users.data?.length || 0);
+      } catch (err) {
+        console.error("[X] Error loading users:", err);
+        users = { data: [] };
+      }
+
+      try {
+        console.log("[FILE_TEXT] Loading posts...");
+        posts = await client.models.Post.list();
+        console.log("[CHECK] Posts loaded:", posts.data?.length || 0);
+      } catch (err) {
+        console.error("[X] Error loading posts:", err);
+        posts = { data: [] };
+      }
+
+      try {
+        console.log("[FOLDER] Loading categories...");
+        categories = await client.models.Category.list();
+        console.log("[CHECK] Categories loaded:", categories.data?.length || 0);
+      } catch (err) {
+        console.error("[X] Error loading categories:", err);
+        categories = { data: [] };
+      }
+
+      try {
+        console.log("[TAG] Loading tags...");
+        tags = await client.models.Tag.list();
+        console.log("[CHECK] Tags loaded:", tags.data?.length || 0);
+      } catch (err) {
+        console.error("[X] Error loading tags:", err);
+        tags = { data: [] };
+      }
+
+      try {
+        console.log("[CLIPBOARD] Loading todos...");
+        todos = await client.models.Todo.list();
+        console.log("[CHECK] Todos loaded:", todos.data?.length || 0);
+      } catch (err) {
+        console.error("[X] Error loading todos:", err);
+        todos = { data: [] };
+      }
 
       setStats({
-        users: users.data.length,
-        posts: posts.data.length,
-        categories: categories.data.length,
-        tags: tags.data.length,
-        todos: todos.data.length,
+        users: users.data?.length || 0,
+        posts: posts.data?.length || 0,
+        categories: categories.data?.length || 0,
+        tags: tags.data?.length || 0,
+        todos: todos.data?.length || 0,
       });
+
+      console.log("[PARTY] All stats loaded successfully");
     } catch (error) {
-      console.error("Error loading stats:", error);
+      console.error("[X] Error loading stats:", error);
+      setError(error instanceof Error ? error.message : "Failed to load stats");
     } finally {
       setLoading(false);
     }
@@ -113,6 +182,33 @@ export default function AdminDashboard() {
     { name: "New User", href: "/admin/users/new", icon: UserPlus },
     { name: "New Category", href: "/admin/categories/new", icon: FolderPlus },
   ];
+
+  // Don't render until client-side
+  if (!isClient) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-2">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-red-500 mt-2">Error: {error}</p>
+          <Button onClick={loadStats} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

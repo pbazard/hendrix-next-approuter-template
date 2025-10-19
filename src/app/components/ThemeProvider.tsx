@@ -31,8 +31,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 function ThemeContextProvider({ children }: { children: React.ReactNode }) {
   const { theme: nextTheme, setTheme } = useNextTheme();
   const [theme, setThemeState] = useState<Theme>("light");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setThemeState((nextTheme as Theme) || "light");
   }, [nextTheme]);
 
@@ -42,9 +44,16 @@ function ThemeContextProvider({ children }: { children: React.ReactNode }) {
     setThemeState(newTheme);
   };
 
+  // Always provide context, but use default values when not mounted
+  const contextValue = mounted
+    ? { theme, toggleTheme }
+    : { theme: "light" as Theme, toggleTheme: () => {} };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
+    <ThemeContext.Provider value={contextValue}>
+      <div style={!mounted ? { visibility: "hidden" } : undefined}>
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 }
