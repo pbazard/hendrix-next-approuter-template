@@ -13,6 +13,21 @@ export const metadata: Metadata = {
   title: "Hendrix - Modern Web Application",
   description:
     "A modern web application built with Next.js, Tailwind CSS, and AWS Amplify",
+  icons: {
+    icon: [
+      {
+        url: "/favicon.svg",
+        type: "image/svg+xml",
+      },
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
+  manifest: "/site.webmanifest",
+};
+
+export const viewport = {
+  themeColor: "#8b5cf6",
 };
 
 export default function RootLayout({
